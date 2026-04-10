@@ -6,9 +6,6 @@ LABEL stage=gobuilder
 # 关闭 CGO，减少依赖
 ENV CGO_ENABLED=0
 
-# 二进制文件名，可通过 --build-arg BINARY_NAME=xxx 指定
-ARG BINARY_NAME=gohttptemplate
-
 # 安装必要的系统工具
 RUN apk update --no-cache && apk add --no-cache tzdata ca-certificates
 
@@ -22,8 +19,8 @@ RUN --mount=type=cache,target=/go/pkg/mod go mod download
 COPY . .
 
 # 编译 Go 可执行文件
-# go tool addr2line -e /app/${BINARY_NAME} {ptr}
-RUN go build -ldflags="-s -w" -o /app/${BINARY_NAME} main.go
+# go tool addr2line -e /app/server {ptr}
+RUN go build -ldflags="-s -w" -o /out/server main.go
 
 # 使用最小 scratch 镜像
 FROM scratch
@@ -37,8 +34,8 @@ ENV TZ=Asia/Shanghai
 
 WORKDIR /app
 
-# 复制可执行文件并赋予执行权限
-COPY --from=builder /app/${BINARY_NAME} /app/${BINARY_NAME}
+# 复制可执行文件到固定入口路径，避免 ENTRYPOINT exec form 无法展开变量
+COPY --from=builder /out/server /app/server
 
 # 复制配置文件
 COPY --from=builder /build/resource/etc/prod.toml /app/resource/etc/prod.toml
@@ -46,6 +43,6 @@ COPY --from=builder /build/resource/etc/prod.toml /app/resource/etc/prod.toml
 # 声明开放端口 8089, 硬编码, 自行手工修改
 EXPOSE 8089
 
-ENTRYPOINT ["/app/${BINARY_NAME}"]
+ENTRYPOINT ["/app/server"]
 
 # 允许动态 "-f" 参数传入日志路径，默认走程序 internal/inits/config.go 内部写死的 resource/etc/prod.toml

@@ -1,5 +1,5 @@
 [Unit]
-Description=SegmentClips golang Services
+Description=HTTP Server Service
 After=network.target
 
 [Service]

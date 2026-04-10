@@ -100,7 +100,7 @@ func (resp *Response[T]) ErrorString() string {
 // ResponseWriterMethodError ResponseError 构建 error string, code 必须是严格 http code
 func ResponseWriterMethodError(w http.ResponseWriter, code int) {
 	w.WriteHeader(code)
-	fmt.Fprintf(w, `{"code":"%d", "message:"%s"}`, code, http.StatusText(code))
+	fmt.Fprintf(w, `{"code":"%d", "message":"%s"}`, code, http.StatusText(code))
 }
 
 func ResponseWriterMessage(w http.ResponseWriter, message string) {
