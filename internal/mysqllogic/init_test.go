@@ -2,6 +2,7 @@
 package mysqllogic
 
 import (
+	"os"
 	"testing"
 
 	"github.com/wangzhione/sbp/chain"
@@ -9,12 +10,19 @@ import (
 
 var ctx = chain.Context()
 
-// testMySQLCommand 固定测试用 MySQL 命令串（与 mysql 命令行一致）：
-const testMySQLCommand = "mysql -uroot -p{passwd} -h{hostname or ip} -P{port} {database} --default-character-set=utf8mb4"
+// testMySQLCommand 优先读取环境变量，避免占位命令在新版本解析器下被当成非法参数。
+func testMySQLCommand() string {
+	return os.Getenv("SBP_TEST_MYSQL")
+}
 
 // TestInit_ValidCommand_CanConnect 使用固定 DSN 初始化并 Ping，连接成功则输出成功。
 func TestInit_ValidCommand_CanConnect(t *testing.T) {
-	err := Init(ctx, testMySQLCommand)
+	command := testMySQLCommand()
+	if command == "" {
+		t.Skip("skip mysql integration test: env SBP_TEST_MYSQL is empty")
+	}
+
+	err := Init(ctx, command)
 	if err != nil {
 		t.Fatalf("Init 失败: %v", err)
 	}

@@ -44,7 +44,7 @@ func Init(ctx context.Context, path string) (err error) {
 	}
 
 	slog.InfoContext(ctx, "main init start ...",
-		slog.Time("SystemBeginTime", system.BeginTime),
+		slog.Time("SystemBeginTime", beginTime),
 		slog.Int("cpunumber", runtime.NumCPU()),
 		slog.Int("pnumber", runtime.GOMAXPROCS(0)),
 		slog.String("path", path),

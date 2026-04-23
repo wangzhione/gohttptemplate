@@ -5,11 +5,12 @@ import (
 	"log/slog"
 	"time"
 
-	"github.com/wangzhione/sbp/system"
-
 	// init logic server register
 	_ "github.com/wangzhione/gohttptemplate/internal/logic"
 )
+
+// beginTime 记录当前进程启动初始化时间，避免依赖 sbp 内部变量位置变更。
+var beginTime = time.Now()
 
 func initlogic(ctx context.Context) (err error) {
 	defer func() {
@@ -17,7 +18,7 @@ func initlogic(ctx context.Context) (err error) {
 
 		slog.InfoContext(ctx, "logic init end",
 			slog.Any("reason", err),
-			slog.Float64("elapsed_seconds", end.Sub(system.BeginTime).Seconds()),
+			slog.Float64("elapsed_seconds", end.Sub(beginTime).Seconds()),
 		)
 	}()
 

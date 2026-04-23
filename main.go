@@ -10,7 +10,7 @@ import (
 	"github.com/wangzhione/gohttptemplate/handler/middleware"
 	"github.com/wangzhione/gohttptemplate/register"
 	"github.com/wangzhione/sbp/chain"
-	"github.com/wangzhione/sbp/system"
+	"github.com/wangzhione/sbp/https"
 )
 
 var (
@@ -25,7 +25,7 @@ func main() {
 	flag.Parse() // flag 参数初始化
 
 	ctx := chain.Context()
-	defer system.End(ctx)
+	defer https.End(ctx)
 
 	// init 如果失败, 程序会直接退出
 	err := register.Init(ctx, *fpath)
@@ -38,7 +38,7 @@ func main() {
 		serverAddr = fmt.Sprintf("0.0.0.0:%d", configs.G.Serve.Port) // 0.0.0.0 默认 ipv4 绑定本机地址
 	}
 
-	system.ServeLoop(
+	https.ServeLoop(
 		ctx,
 		serverAddr,
 		middleware.MainMiddleware(http.DefaultServeMux),
