@@ -49,9 +49,9 @@ func Init(ctx context.Context, path string) (err error) {
 		slog.Int("pnumber", runtime.GOMAXPROCS(0)),
 		slog.String("path", path),
 		slog.String("GOOS", runtime.GOOS),
-		slog.String("BuildVersion", system.BuildVersion),
+		slog.String("BuildGoVersion", system.BuildGoVersion),
 		slog.String("GitVersion", system.GitVersion),
-		slog.String("GitCommitTime", system.GitCommitTime),
+		slog.String("GitLastCommitTime", system.GitLastCommitTime),
 	)
 
 	// 后续 init 操作, 放在 initlogic 里面
