@@ -21,7 +21,7 @@ func ResponseWriterPanicError(w http.ResponseWriter) {
 
 // ispprofpath 检查请求路径是否为 pprof 调试路由
 func ispprofpath(path string) bool {
-	return strings.HasPrefix(path, "/debug/pprof")
+	return path == "/debug/pprof" || strings.HasPrefix(path, "/debug/pprof/")
 }
 
 // token 通过 header "pprofbearer: Bearer <token>" 传递
@@ -111,9 +111,9 @@ func MainMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
-		// Step 2: pprof 路由的额外安全验证
-		if pprofBearer := configs.G.Serve.PprofBearer; pprofBearer != "" {
-			if !verifypprofbearer(r, pprofBearer) {
+		// Step 2: pprof 路由的额外安全验证, 空 token 表示禁用认证
+		if ispprofpath(r.URL.Path) && configs.G != nil {
+			if pprofBearer := configs.G.Serve.PprofBearer; pprofBearer != "" && !verifypprofbearer(r, pprofBearer) {
 				slog.WarnContext(r.Context(), "pprof access denied",
 					slog.String("method", r.Method),
 					slog.String("path", r.URL.Path),
