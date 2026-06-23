@@ -4,6 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+
+	"github.com/wangzhione/sbp/util/jsou"
 )
 
 // ErrRequestEmpty 返回的数据是 empty
@@ -104,5 +106,5 @@ func ResponseWriterMethodError(w http.ResponseWriter, code int) {
 }
 
 func ResponseWriterMessage(w http.ResponseWriter, message string) {
-	fmt.Fprintf(w, `{"message":"%s"}`, message)
+	fmt.Fprintf(w, `{"message":%s}`, jsou.String(message))
 }
