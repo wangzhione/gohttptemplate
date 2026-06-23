@@ -4,6 +4,7 @@ import (
 	"archive/zip"
 	"context"
 	"encoding/json"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"os"
@@ -34,7 +35,20 @@ func REQUEST[REQ any](logic func(context.Context, REQ, http.ResponseWriter)) fun
 }
 
 // ResponseWriterZip 打包并将文件流式返回为 ZIP 下载
-func ResponseWriterZip(ctx context.Context, w http.ResponseWriter, zipname string, files []string) {
+func ResponseWriterZip(ctx context.Context, w http.ResponseWriter, zipname string, files []string) error {
+	for _, file := range files {
+		info, err := os.Stat(file)
+		if err != nil {
+			slog.ErrorContext(ctx, "Stat zip file failed", "error", err, "file", file)
+			return err
+		}
+		if info.IsDir() {
+			err := fmt.Errorf("zip file path is directory: %s", file)
+			slog.ErrorContext(ctx, "Zip file path is directory", "error", err, "file", file)
+			return err
+		}
+	}
+
 	// 设置响应头
 	w.Header().Set("Content-Disposition", "attachment; filename=\""+zipname+"\"")
 	w.Header().Set("Content-Type", "application/zip")
@@ -49,12 +63,25 @@ func ResponseWriterZip(ctx context.Context, w http.ResponseWriter, zipname strin
 	for _, file := range files {
 		err := filedir.AddFileToZip(ctx, zipWriter, file, filepath.Base(file))
 		if err != nil {
-			return
+			return err
 		}
 	}
+
+	return nil
 }
 
-func ResponseWriterZipDir(ctx context.Context, w http.ResponseWriter, zipname string, dir string) {
+func ResponseWriterZipDir(ctx context.Context, w http.ResponseWriter, zipname string, dir string) error {
+	info, err := os.Stat(dir)
+	if err != nil {
+		slog.ErrorContext(ctx, "Stat zip dir failed", "error", err, "dir", dir)
+		return err
+	}
+	if !info.IsDir() {
+		err := fmt.Errorf("zip dir path is not directory: %s", dir)
+		slog.ErrorContext(ctx, "Zip dir path is not directory", "error", err, "dir", dir)
+		return err
+	}
+
 	// 设置响应头，提前发送 attachment 信息
 	w.Header().Set("Content-Disposition", "attachment; filename="+zipname)
 	w.Header().Set("Content-Type", "application/zip")
@@ -71,7 +98,7 @@ func ResponseWriterZipDir(ctx context.Context, w http.ResponseWriter, zipname st
 	}()
 
 	// 遍历目录
-	err := filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
+	err = filepath.Walk(dir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			slog.ErrorContext(ctx, "Walk error", "error", err, "path", path)
 			return err
@@ -106,6 +133,8 @@ func ResponseWriterZipDir(ctx context.Context, w http.ResponseWriter, zipname st
 	if err != nil {
 		slog.ErrorContext(ctx, "Failed to walk and zip directory", "error", err, "dir", dir, "zipname", zipname)
 		// 注意：不能再使用 http.Error，因为响应头已发，部分内容已写入
-		return
+		return err
 	}
+
+	return nil
 }
