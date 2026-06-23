@@ -65,12 +65,15 @@ func (b *BatchOption) Run(ctx context.Context) error {
 			slog.InfoContext(ctx, "BatchOption b.Start() error",
 				slog.Time("StartTime", startTime), slog.Any("error", err))
 		}
-		err = b.Wait()
-		if err != nil {
+		waitErr := b.Wait()
+		if waitErr != nil {
 			slog.InfoContext(ctx, "BatchOption b.Wait() error",
-				slog.Time("StartTime", startTime), slog.Any("error", err))
+				slog.Time("StartTime", startTime), slog.Any("error", waitErr))
 		}
-		return err
+		if err != nil {
+			return err
+		}
+		return waitErr
 	}
 
 	for _, opt := range b.Options {
