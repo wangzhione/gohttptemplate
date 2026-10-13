@@ -116,6 +116,9 @@ func ResponseWriterZipDir(ctx context.Context, w http.ResponseWriter, zipname st
 			return nil
 		}
 
+		// ZIP 条目统一使用 /，避免 Windows 路径分隔符影响跨平台解压。
+		relPath = filepath.ToSlash(relPath)
+
 		if info.IsDir() {
 			// 是目录则创建空目录条目
 			_, err := zipWriter.Create(relPath + "/")
